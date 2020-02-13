@@ -8,8 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CourseLibrary.API.Controllers
 {
-    
-    [ApiController]
+
+    [ApiController] //The controller does not need to check if ModelState.IsValid in case it is decorated with this attribute
     [Route("api/authors")]
     public class AuthorsController : ControllerBase
     {
@@ -32,14 +32,12 @@ namespace CourseLibrary.API.Controllers
         {
             var authorFromRepo = this.courseLibraryRepository.GetAuthor(authorId);
 
-            //if(authorFromRepo == null)
-            //{
-            //    return NotFound();
-            //}
+            if(authorFromRepo == null)
+            {
+                return NotFound();
+            }
 
             return Ok(authorFromRepo);
         }
-
-
     }
 }

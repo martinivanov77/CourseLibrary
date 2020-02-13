@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace CourseLibrary.API
 {
@@ -22,7 +23,11 @@ namespace CourseLibrary.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-           services.AddControllers();
+           services.AddControllers(setupAction =>
+           {
+               setupAction.ReturnHttpNotAcceptable = true;
+               
+           }).AddXmlDataContractSerializerFormatters();
              
             services.AddScoped<ICourseLibraryRepository, CourseLibraryRepository>();
 
@@ -45,7 +50,7 @@ namespace CourseLibrary.API
 
             app.UseAuthorization();
 
-            //Used for Attribute based routing
+            //Used for Attribut
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
