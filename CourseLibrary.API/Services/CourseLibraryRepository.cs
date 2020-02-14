@@ -8,11 +8,11 @@ namespace CourseLibrary.API.Services
 {
     public class CourseLibraryRepository : ICourseLibraryRepository, IDisposable
     {
-        private readonly CourseLibraryContext _context;
+        private readonly CourseLibraryContext context;
 
         public CourseLibraryRepository(CourseLibraryContext context )
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            this.context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public void AddCourse(Guid authorId, Course course)
@@ -28,12 +28,12 @@ namespace CourseLibrary.API.Services
             }
             // always set the AuthorId to the passed-in authorId
             course.AuthorId = authorId;
-            _context.Courses.Add(course); 
+            context.Courses.Add(course); 
         }         
 
         public void DeleteCourse(Course course)
         {
-            _context.Courses.Remove(course);
+            context.Courses.Remove(course);
         }
   
         public Course GetCourse(Guid authorId, Guid courseId)
@@ -48,7 +48,7 @@ namespace CourseLibrary.API.Services
                 throw new ArgumentNullException(nameof(courseId));
             }
 
-            return _context.Courses
+            return context.Courses
               .Where(c => c.AuthorId == authorId && c.Id == courseId).FirstOrDefault();
         }
 
@@ -59,7 +59,7 @@ namespace CourseLibrary.API.Services
                 throw new ArgumentNullException(nameof(authorId));
             }
 
-            return _context.Courses
+            return context.Courses
                         .Where(c => c.AuthorId == authorId)
                         .OrderBy(c => c.Title).ToList();
         }
@@ -84,7 +84,7 @@ namespace CourseLibrary.API.Services
                 course.Id = Guid.NewGuid();
             }
 
-            _context.Authors.Add(author);
+            context.Authors.Add(author);
         }
 
         public bool AuthorExists(Guid authorId)
@@ -94,7 +94,7 @@ namespace CourseLibrary.API.Services
                 throw new ArgumentNullException(nameof(authorId));
             }
 
-            return _context.Authors.Any(a => a.Id == authorId);
+            return context.Authors.Any(a => a.Id == authorId);
         }
 
         public void DeleteAuthor(Author author)
@@ -104,7 +104,7 @@ namespace CourseLibrary.API.Services
                 throw new ArgumentNullException(nameof(author));
             }
 
-            _context.Authors.Remove(author);
+            context.Authors.Remove(author);
         }
         
         public Author GetAuthor(Guid authorId)
@@ -114,14 +114,42 @@ namespace CourseLibrary.API.Services
                 throw new ArgumentNullException(nameof(authorId));
             }
 
-            return _context.Authors.FirstOrDefault(a => a.Id == authorId);
+            return context.Authors.FirstOrDefault(a => a.Id == authorId);
         }
 
         public IEnumerable<Author> GetAuthors()
         {
-            return _context.Authors.ToList<Author>();
+            return context.Authors.ToList<Author>();
         }
-         
+
+        public IEnumerable<Author> GetAuthors(string mainCategory, string searchQuery)
+        {
+            if (string.IsNullOrWhiteSpace(mainCategory) && string.IsNullOrWhiteSpace(searchQuery))
+            {
+                return GetAuthors();
+            }
+
+            var collection = context.Authors as IQueryable<Author>;
+
+            if(!string.IsNullOrWhiteSpace(mainCategory))
+            {
+                mainCategory = mainCategory.Trim();
+
+                collection = collection.Where(a => a.MainCategory == mainCategory);
+            }
+
+            if(!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                searchQuery = searchQuery.Trim();
+                collection = collection.Where(a => a.MainCategory.Contains(searchQuery)
+                || a.FirstName.Contains(searchQuery)
+                || a.LastName.Contains(searchQuery));
+                    
+            }
+
+            return collection.ToList();
+        }
+
         public IEnumerable<Author> GetAuthors(IEnumerable<Guid> authorIds)
         {
             if (authorIds == null)
@@ -129,7 +157,7 @@ namespace CourseLibrary.API.Services
                 throw new ArgumentNullException(nameof(authorIds));
             }
 
-            return _context.Authors.Where(a => authorIds.Contains(a.Id))
+            return context.Authors.Where(a => authorIds.Contains(a.Id))
                 .OrderBy(a => a.FirstName)
                 .OrderBy(a => a.LastName)
                 .ToList();
@@ -142,7 +170,7 @@ namespace CourseLibrary.API.Services
 
         public bool Save()
         {
-            return (_context.SaveChanges() >= 0);
+            return (context.SaveChanges() >= 0);
         }
 
         public void Dispose()

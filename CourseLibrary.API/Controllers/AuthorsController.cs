@@ -26,9 +26,10 @@ namespace CourseLibrary.API.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<AuthorDto>> GetAuthors()
+        [HttpHead]
+        public ActionResult<IEnumerable<AuthorDto>> GetAuthors(string mainCategory, string searchQuery)
         {
-            var authorsFromRepo = this.courseLibraryRepository.GetAuthors();
+            var authorsFromRepo = this.courseLibraryRepository.GetAuthors(mainCategory, searchQuery);
 
             //Mapping from repository to Dto Model
            
